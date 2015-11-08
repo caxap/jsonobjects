@@ -228,55 +228,27 @@ class StringField(Field):
         return value
 
 
-class IntegerField(Field):
-    default_error_messages = {
-        'invalid': 'A valid integer is required.',
-        'max_value': 'Ensure this field is less than or equal to {limit}.',
-        'min_value': 'Ensure this field is greater than or equal to {limit}.',
-        'max_string_length': 'String value too large.',
-    }
-    MAX_STRING_LENGTH = 1000  # Guard against malicious string inputs.
-    re_decimal = re.compile(r'\.0*\s*$')  # allow e.g. '1.0' as an int, but not '1.2'
-
-    def __init__(self, source=None, **kwargs):
-        # TODO: add fuzzy_value oprion
-        self.max_value = kwargs.pop('max_value', None)
-        self.min_value = kwargs.pop('min_value', None)
-
-        super(IntegerField, self).__init__(source, **kwargs)
-
-        if self.max_value is not None:
-            message = self.error_messages['max_value']
-            self.validators.append(MaxValue(self.max_value, message=message))
-        if self.min_value is not None:
-            message = self.error_messages['min_value']
-            self.validators.append(MinValue(self.min_value, message=message))
-
-    def convert_to_type(self, value):
-        if isinstance(value, basestring_type) and len(value) > self.MAX_STRING_LENGTH:
-            self.fail('max_string_length')
-
-        try:
-            return int(self.re_decimal.sub('', str(value)))
-        except (ValueError, TypeError):
-            self.fail('invalid')
-
-
-class FloatField(Field):
+class NumberField(Field):
     default_error_messages = {
         'invalid': 'A valid number is required.',
         'max_value': 'Ensure this field is less than or equal to {limit}.',
         'min_value': 'Ensure this field is greater than or equal to {limit}.',
         'max_string_length': 'String value too large.',
     }
+    number_type = NULL
+
     MAX_STRING_LENGTH = 1000  # Guard against malicious string inputs.
 
     def __init__(self, source=None, **kwargs):
-        # TODO: add fuzzy_value oprion
+        cls_name = self.__class__.__name__
+        assert self.number_type is not NULL, (
+            '`number_type` property is not defined for `{cls_name}`.'
+        ).format(cls_name=cls_name)
+
         self.max_value = kwargs.pop('max_value', None)
         self.min_value = kwargs.pop('min_value', None)
 
-        super(FloatField, self).__init__(source, **kwargs)
+        super(NumberField, self).__init__(source, **kwargs)
 
         if self.max_value is not None:
             message = self.error_messages['max_value']
@@ -290,9 +262,23 @@ class FloatField(Field):
             self.fail('max_string_length')
 
         try:
-            return float(value)
-        except (TypeError, ValueError):
+            return self.number_type(value)
+        except (ValueError, TypeError):
             self.fail('invalid')
+
+
+class IntegerField(NumberField):
+    default_error_messages = {
+        'invalid': 'A valid integer is required.',
+    }
+    re_decimal = re.compile(r'\.0*\s*$')  # allow e.g. '1.0' as an int, but not '1.2'
+
+    def number_type(self, value):
+        return int(self.re_decimal.sub('', str(value)))
+
+
+class FloatField(NumberField):
+    number_type = float
 
 
 class RegexField(StringField):
@@ -311,9 +297,6 @@ class RegexField(StringField):
                                    inverse_match=self.inverse_match,
                                    message=self.error_messages['invalid'])
         self.validators.append(validator)
-
-# TODO: DateTimeField
-# TODO: DateField
 
 
 class ListField(Field):
