@@ -1,0 +1,4 @@
+- add 'fuzz' parameter to fields
+- add DateField
+- add DateTimeField
+- add docs
