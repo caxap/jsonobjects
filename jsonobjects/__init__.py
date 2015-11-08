@@ -3,8 +3,8 @@
 
 from .exceptions import GenericError, NotFound, ValidationError
 from .fields import (
-    Field, BooleanField, StringField, IntegerField, FloatField, RegexField,
-    ListField, DictField
+    Field, BooleanField, StringField, IntegerField, FloatField, DecimalField,
+    RegexField, ListField, DictField
 )
 from .validators import (
     MinValue, MaxValue, MinLength, MaxLength, RegexValidator
@@ -21,5 +21,6 @@ __version__ = '1.0.0a'
 __all__ = ['GenericError', 'NotFound', 'ValidationError',
            'path', 'Path', 'Schema', 'NULL',
            'Field', 'BooleanField', 'StringField', 'IntegerField',
-           'FloatField', 'RegexField', 'ListField', 'DictField',
+           'FloatField', 'DecimalField', 'RegexField', 'ListField',
+           'DictField',
            'MinValue', 'MaxValue', 'MinLength', 'MaxLength', 'RegexValidator']

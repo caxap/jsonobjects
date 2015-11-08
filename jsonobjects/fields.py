@@ -4,6 +4,7 @@
 import re
 import copy
 import inspect
+import decimal
 from collections import Mapping
 from . import path
 from .exceptions import NotFound, ValidationError
@@ -16,7 +17,8 @@ from .utils import (
 )
 
 __all__ = ['Field', 'BooleanField', 'StringField', 'IntegerField',
-           'FloatField', 'RegexField', 'ListField', 'DictField']
+           'FloatField', 'DecimalField', 'RegexField', 'ListField',
+           'DictField']
 
 
 def get_error_messages(instance):
@@ -258,8 +260,10 @@ class NumberField(Field):
             self.validators.append(MinValue(self.min_value, message=message))
 
     def convert_to_type(self, value):
-        if isinstance(value, basestring_type) and len(value) > self.MAX_STRING_LENGTH:
-            self.fail('max_string_length')
+        if isinstance(value, basestring_type):
+            value = value.strip()
+            if len(value) > self.MAX_STRING_LENGTH:
+                self.fail('max_string_length')
 
         try:
             return self.number_type(value)
@@ -279,6 +283,24 @@ class IntegerField(NumberField):
 
 class FloatField(NumberField):
     number_type = float
+
+
+class DecimalField(NumberField):
+
+    def number_type(self, value):
+        if not isinstance(value, decimal.Decimal):
+            try:
+                value = decimal.Decimal(value)
+            except decimal.DecimalException:
+                self.fail('invalid')
+
+        if value != value:
+            self.fail('invalid')
+
+        if value in (decimal.Decimal('Inf'), decimal.Decimal('-Inf')):
+            self.fail('invalid')
+
+        return value
 
 
 class RegexField(StringField):

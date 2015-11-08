@@ -3,6 +3,7 @@
 
 import re
 import copy
+import decimal
 import unittest
 from mock import MagicMock
 
@@ -220,6 +221,13 @@ class JsonObjectsTestCase(unittest.TestCase):
         self.assertEqual(f({'x': 5}), 5.)
         self.assertEqual(f({'x': 7}), 7.)
         self.assertEqual(f({'x': 10}), 10.)
+
+    def test_decimal_field(self):
+        f = jo.DecimalField('x', min_value=decimal.Decimal('5'))
+        self.assertEqual(f({'x': '5.001'}), decimal.Decimal('5.001'))
+        self.assertRaises(jo.ValidationError, f, {'x': 'NaN'})
+        self.assertRaises(jo.ValidationError, f, {'x': 'Inf'})
+        self.assertRaises(jo.ValidationError, f, {'x': 'abc'})
 
     def test_regex_field(self):
         f = jo.RegexField('x', r'^[0-9]+$', flags=re.I)
