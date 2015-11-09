@@ -18,8 +18,8 @@ Dependencies
 ------------
 All dependencies are optional.
 
-- `JMESPath <https://jmespath.readthedocs.org/en/latest/>`_ to allow advanced queries
-(see `JMESPath <https://jmespath.readthedocs.org/en/latest/>`_ documentation for details).
+- `JMESPath <https://jmespath.readthedocs.org/en/latest/>`_ to allow advanced queries (see `JMESPath <https://jmespath.readthedocs.org/en/latest/>`_ documentation for details).
+- `dateutil <https://dateutil.readthedocs.org/en/latest/>`_ to allow iso-8601 date formats.
 
 
 Usage
