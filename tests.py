@@ -4,6 +4,7 @@
 import re
 import copy
 import decimal
+import datetime
 import unittest
 from mock import MagicMock
 
@@ -228,6 +229,35 @@ class JsonObjectsTestCase(unittest.TestCase):
         self.assertRaises(jo.ValidationError, f, {'x': 'NaN'})
         self.assertRaises(jo.ValidationError, f, {'x': 'Inf'})
         self.assertRaises(jo.ValidationError, f, {'x': 'abc'})
+
+    def test_date_field(self):
+        now = datetime.datetime.utcnow()
+        f = jo.DateField('x')
+        self.assertEqual(f({'x': now.date()}), now.date())
+        self.assertEqual(f({'x': '2015-03-13'}),
+                         f({'x': '2015-03-13 12:00:00'}),
+                         datetime.datetime(2015, 3, 13).date())
+        self.assertRaises(jo.ValidationError, f, {'x': now})
+        self.assertRaises(jo.ValidationError, f, {'x': 1})
+
+        f = jo.DateField('x', formats=['%Y-%m-%d'])
+        self.assertEqual(f({'x': '2015-03-13'}),
+                         datetime.datetime(2015, 3, 13).date())
+
+    def test_datetime_field(self):
+        now = datetime.datetime.utcnow()
+        f = jo.DateTimeField('x')
+        self.assertEqual(f({'x': now}), now)
+        self.assertEqual(f({'x': '2015-03-13'}),
+                         datetime.datetime(2015, 3, 13))
+        self.assertEqual(f({'x': '2015-03-13 12:00:00'}),
+                         datetime.datetime(2015, 3, 13, 12))
+        self.assertRaises(jo.ValidationError, f, {'x': now.date()})
+        self.assertRaises(jo.ValidationError, f, {'x': 1})
+
+        f = jo.DateTimeField('x', formats=['%Y-%m-%d'])
+        self.assertEqual(f({'x': '2015-03-13'}),
+                         datetime.datetime(2015, 3, 13))
 
     def test_regex_field(self):
         f = jo.RegexField('x', r'^[0-9]+$', flags=re.I)

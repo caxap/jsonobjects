@@ -1,4 +1,3 @@
 - add 'fuzz' parameter to fields
-- add DateField
-- add DateTimeField
+- add timezone support
 - add docs

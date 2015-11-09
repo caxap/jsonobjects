@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
 
-__all__ = ['NULL', 'unicode_type', 'basestring_type',
+__all__ = ['NULL', 'ISO_8601', 'unicode_type', 'basestring_type',
            'utf8', 'to_unicode',
            'is_non_str_iterable', 'to_iterable', 'smart_bool']
 
 
 NULL = object()
+ISO_8601 = 'iso-8601'
 
 
 if not isinstance(b'', type('')):

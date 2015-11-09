@@ -5,6 +5,7 @@ import re
 import copy
 import inspect
 import decimal
+import datetime
 from collections import Mapping
 from . import path
 from .exceptions import NotFound, ValidationError
@@ -12,13 +13,19 @@ from .validators import (
     MinValue, MaxValue, MaxLength, MinLength, RegexValidator
 )
 from .utils import (
-    NULL, smart_bool, to_iterable, is_non_str_iterable, to_unicode,
-    basestring_type
+    NULL, ISO_8601, smart_bool, to_iterable, is_non_str_iterable, to_unicode,
+    basestring_type, unicode_type
 )
 
+try:
+    from dateutil.parser import parse as parse_date
+except ImportError:
+    parse_date = None
+
+
 __all__ = ['Field', 'BooleanField', 'StringField', 'IntegerField',
-           'FloatField', 'DecimalField', 'RegexField', 'ListField',
-           'DictField']
+           'FloatField', 'DecimalField', 'DateField', 'DateTimeField',
+           'RegexField', 'ListField', 'DictField']
 
 
 def get_error_messages(instance):
@@ -230,7 +237,7 @@ class StringField(Field):
         return value
 
 
-class NumberField(Field):
+class BaseNumberField(Field):
     default_error_messages = {
         'invalid': 'A valid number is required.',
         'max_value': 'Ensure this field is less than or equal to {limit}.',
@@ -250,7 +257,7 @@ class NumberField(Field):
         self.max_value = kwargs.pop('max_value', None)
         self.min_value = kwargs.pop('min_value', None)
 
-        super(NumberField, self).__init__(source, **kwargs)
+        super(BaseNumberField, self).__init__(source, **kwargs)
 
         if self.max_value is not None:
             message = self.error_messages['max_value']
@@ -271,7 +278,7 @@ class NumberField(Field):
             self.fail('invalid')
 
 
-class IntegerField(NumberField):
+class IntegerField(BaseNumberField):
     default_error_messages = {
         'invalid': 'A valid integer is required.',
     }
@@ -281,11 +288,11 @@ class IntegerField(NumberField):
         return int(self.re_decimal.sub('', str(value)))
 
 
-class FloatField(NumberField):
+class FloatField(BaseNumberField):
     number_type = float
 
 
-class DecimalField(NumberField):
+class DecimalField(BaseNumberField):
 
     def number_type(self, value):
         if not isinstance(value, decimal.Decimal):
@@ -301,6 +308,77 @@ class DecimalField(NumberField):
             self.fail('invalid')
 
         return value
+
+
+class BaseDateField(Field):
+    default_error_messages = {
+        'invalid': 'A valid date is required. Allowed formats: {formats}.',
+        'max_string_length': 'String value too large.',
+    }
+    default_formats = [ISO_8601]
+    MAX_STRING_LENGTH = 1000  # Guard against malicious string inputs.
+
+    def __init__(self, source=None, **kwargs):
+        self.formats = kwargs.pop('formats', self.default_formats)
+        super(BaseDateField, self).__init__(source, **kwargs)
+
+    def convert_to_type(self, value):
+        if isinstance(value, basestring_type):
+            value = unicode_type(value.strip())
+            if len(value) > self.MAX_STRING_LENGTH:
+                self.fail('max_string_length')
+
+            for format in self.formats:
+                try:
+                    return self.parse(value, format)
+                except (ValueError, TypeError):
+                    continue
+
+        formats_repr = ', '.join([repr(format) for format in self.formats])
+        self.fail('invalid', formats=formats_repr)
+
+    def parse(self, value, format):
+        if format.lower() == ISO_8601:
+            assert parse_date, (
+                '`dateutils` is not installed. Use `pip install dateutils` '
+                'command to install this package.'
+            )
+            return parse_date(value)
+        else:
+            return datetime.datetime.strptime(value, format)
+
+
+class DateField(BaseDateField):
+    default_error_messages = {
+        'datetime': 'Expected a date but got a datetime.'
+    }
+
+    def convert_to_type(self, value):
+        if isinstance(value, datetime.datetime):
+            self.fail('datetime')
+
+        if isinstance(value, datetime.date):
+            return value
+
+        return super(DateField, self).convert_to_type(value)
+
+    def parse(self, value, format):
+        return super(DateField, self).parse(value, format).date()
+
+
+class DateTimeField(BaseDateField):
+    default_error_messages = {
+        'date': 'Expected a datetime but got a date.',
+    }
+
+    def convert_to_type(self, value):
+        if isinstance(value, datetime.datetime):
+            return value
+
+        if isinstance(value, datetime.date):
+            self.fail('date')
+
+        return super(DateTimeField, self).convert_to_type(value)
 
 
 class RegexField(StringField):
