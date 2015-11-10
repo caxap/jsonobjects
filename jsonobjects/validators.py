@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import re
+from collections import OrderedDict
 from .exceptions import ValidationError
 from .utils import basestring_type
 
-__all__ = ['MinValue', 'MaxValue', 'MinLength', 'MaxLength', 'RegexValidator']
+__all__ = ['MinValue', 'MaxValue', 'MinLength', 'MaxLength', 'RegexValidator',
+           'ChoiceValidator']
 
 
 class BaseValidator(object):
@@ -92,3 +94,27 @@ class RegexValidator(BaseValidator):
     def predicate(self, value):
         ret = bool(self.regex.search(value))
         return not ret if self.inverse_match else ret
+
+
+def _to_choices_dict(choices):
+    ret = OrderedDict()
+    for choice in choices:
+        if isinstance(choice, (list, tuple)):
+            # paired choice (key, display value)
+            key, value = choice
+            ret[key] = value
+        else:
+            # single choice
+            ret[choice] = choice
+    return ret
+
+
+class ChoiceValidator(BaseValidator):
+    message = 'This value is not a valid choice.'
+
+    def __init__(self, choices, **kwargs):
+        self.choices = _to_choices_dict(choices)
+        super(ChoiceValidator, self).__init__(**kwargs)
+
+    def predicate(self, value):
+        return value in self.choices

@@ -104,6 +104,17 @@ class JsonObjectsTestCase(unittest.TestCase):
         self.assertRaises(jo.ValidationError, match, 'abc')
         self.assertRaises(jo.ValidationError, not_match, '-1.0')
 
+    def test_choices_validators(self):
+        choices = (1, 2, 3)
+        only123 = jo.ChoiceValidator(choices)
+        only123(1)
+        self.assertRaises(jo.ValidationError, only123, 0)
+
+        choices = ((1, 'One'), (2, 'Two'), (3, 'Three'))
+        only123 = jo.ChoiceValidator(choices)
+        only123(1)
+        self.assertRaises(jo.ValidationError, only123, 0)
+
     def test_base_field(self):
         f = jo.Field()
         self.assertTrue(f.required)

@@ -7,7 +7,7 @@ from .fields import (
     DateField, DateTimeField, RegexField, ListField, DictField
 )
 from .validators import (
-    MinValue, MaxValue, MinLength, MaxLength, RegexValidator
+    MinValue, MaxValue, MinLength, MaxLength, RegexValidator, ChoiceValidator
 )
 from .schema import Schema
 from . import path
@@ -23,4 +23,5 @@ __all__ = ['GenericError', 'NotFound', 'ValidationError',
            'Field', 'BooleanField', 'StringField', 'IntegerField',
            'FloatField', 'DecimalField', 'DateField', 'DateTimeField',
            'RegexField', 'ListField', 'DictField',
-           'MinValue', 'MaxValue', 'MinLength', 'MaxLength', 'RegexValidator']
+           'MinValue', 'MaxValue', 'MinLength', 'MaxLength', 'RegexValidator',
+           'ChoiceValidator']
