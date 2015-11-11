@@ -222,17 +222,20 @@ class JsonObjectsTestCase(unittest.TestCase):
         self.assertEqual(f({'x': 10}), 10)
 
     def test_float_field(self):
-        f = jo.IntegerField('x')
+        f = jo.FloatField('x')
         self.assertEqual(f({'x': 1}), 1.)
         self.assertEqual(f({'x': 1.}), 1.)
         self.assertEqual(f({'x': '1'}), 1.)
         self.assertEqual(f({'x': '1.00'}), 1.)
         self.assertRaises(jo.ValidationError, f, {'x': 'x'})
 
-        f = jo.IntegerField('x', min_value=5, max_value=10)
+        f = jo.FloatField('x', min_value=5, max_value=10)
         self.assertEqual(f({'x': 5}), 5.)
         self.assertEqual(f({'x': 7}), 7.)
         self.assertEqual(f({'x': 10}), 10.)
+
+        f = jo.FloatField('x', precision=1)
+        self.assertEqual(f({'x': 1.123}), 1.1)
 
     def test_decimal_field(self):
         f = jo.DecimalField('x', min_value=decimal.Decimal('5'))

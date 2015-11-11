@@ -291,6 +291,16 @@ class IntegerField(BaseNumberField):
 class FloatField(BaseNumberField):
     number_type = float
 
+    def __init__(self, source=None, **kwargs):
+        self.precision = kwargs.pop('precision', None)
+        super(FloatField, self).__init__(source, **kwargs)
+
+    def convert_to_type(self, value):
+        value = super(FloatField, self).convert_to_type(value)
+        if self.precision:
+            value = round(value, self.precision)
+        return value
+
 
 class DecimalField(BaseNumberField):
 
