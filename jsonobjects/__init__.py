@@ -15,7 +15,7 @@ from .path import Path
 from .utils import NULL, ISO_8601
 
 
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 
 
 __all__ = ['GenericError', 'NotFound', 'ValidationError',
