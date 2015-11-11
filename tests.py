@@ -149,7 +149,7 @@ class JsonObjectsTestCase(unittest.TestCase):
         # Alternative keys
         data = {'x': {'y': 1}}
         f = jo.Field(['x.z', 'x.y'])
-        self.assertEqual(f.get_value(data), f(data), 1)
+        self.assertEqual(f.parse(data), f(data), 1)
 
         # Custom validation & processing
         validate = MagicMock()

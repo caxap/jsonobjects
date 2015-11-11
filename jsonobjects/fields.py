@@ -18,9 +18,9 @@ from .utils import (
 )
 
 try:
-    from dateutil.parser import parse as parse_date
+    from dateutil.parser import parse as parse_datetime
 except ImportError:
-    parse_date = None
+    parse_datetime = None
 
 
 __all__ = ['Field', 'BooleanField', 'StringField', 'IntegerField',
@@ -164,12 +164,12 @@ class Field(object):
 
         raise ValidationError(msg.format(**kwargs), self.field_name)
 
-    def get_value(self, data):
+    def parse(self, data):
         value = self.find(data)
         return self.run_validation(value)
 
     def __call__(self, data):
-        return self.get_value(data)
+        return self.parse(data)
 
     def __new__(cls, *args, **kwargs):
         instance = super(Field, cls).__new__(cls)
@@ -330,20 +330,20 @@ class BaseDateField(Field):
 
             for format in self.formats:
                 try:
-                    return self.parse(value, format)
+                    return self.parse_date(value, format)
                 except (ValueError, TypeError):
                     continue
 
         formats_repr = ', '.join([repr(format) for format in self.formats])
         self.fail('invalid', formats=formats_repr)
 
-    def parse(self, value, format):
+    def parse_date(self, value, format):
         if format.lower() == ISO_8601:
-            assert parse_date, (
+            assert parse_datetime, (
                 '`dateutils` is not installed. Use `pip install dateutils` '
                 'command to install this package.'
             )
-            return parse_date(value)
+            return parse_datetime(value)
         else:
             return datetime.datetime.strptime(value, format)
 
@@ -362,8 +362,8 @@ class DateField(BaseDateField):
 
         return super(DateField, self).convert_to_type(value)
 
-    def parse(self, value, format):
-        return super(DateField, self).parse(value, format).date()
+    def parse_date(self, value, format):
+        return super(DateField, self).parse_date(value, format).date()
 
 
 class DateTimeField(BaseDateField):

@@ -84,5 +84,5 @@ class Schema(Field):
     def as_decorator(self, func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            return self.get_value(func(*args, **kwargs))
+            return self.parse(func(*args, **kwargs))
         return wrapper
