@@ -343,6 +343,21 @@ class JsonObjectsTestCase(unittest.TestCase):
         }
         self.assertEqual(s(TEST_INPUT), item_ret)
 
+    def test_schema_inheritance(self):
+
+        class Foo(jo.Schema):
+            x = jo.IntegerField()
+
+        class Bar(Foo):
+            x = jo.IntegerField(post_process=lambda x: 2 * x)
+
+        f1 = Foo()
+        f2 = Bar()
+
+        data = {'x': 1}
+        self.assertEqual(f1(data)['x'], 1)
+        self.assertEqual(f2(data)['x'], 2)
+
     def test_nested_validation_errors(self):
         class Foo(jo.Schema):
             foo = jo.IntegerField()
