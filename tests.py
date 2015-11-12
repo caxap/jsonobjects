@@ -346,6 +346,28 @@ class JsonObjectsTestCase(unittest.TestCase):
         }
         self.assertEqual(s(TEST_INPUT), item_ret)
 
+    def test_schema_child(self):
+        class Foo(jo.Schema):
+            x = jo.IntegerField()
+
+        class Bar(jo.Schema):
+            y = jo.ListField(child=Foo())
+
+        class Baz(jo.Schema):
+            z = jo.DictField(child=Foo())
+
+        f1 = Bar()
+        f2 = Baz()
+
+        data = {
+            'y': [{'x': 1}, {'x': 2}],
+            'z': {
+                '1': {'x': 1}, '2': {'x': 2}
+            }
+        }
+        self.assertEqual(f1(data), {'y': [{'x': 1}, {'x': 2}]})
+        self.assertEqual(f2(data), {'z': {'1': {'x': 1}, '2': {'x': 2}}})
+
     def test_schema_inheritance(self):
 
         class Foo(jo.Schema):
