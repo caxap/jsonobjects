@@ -273,6 +273,14 @@ class JsonObjectsTestCase(unittest.TestCase):
         self.assertEqual(f({'x': '2015-03-13'}),
                          datetime.datetime(2015, 3, 13))
 
+    def test_time_field(self):
+        now = datetime.datetime.utcnow()
+        t = now.replace(hour=12, minute=0, second=0, microsecond=0).time()
+        f = jo.TimeField('x')
+        self.assertEqual(f({'x': now.time()}), now.time())
+        self.assertEqual(f({'x': '2015-03-13 12:00:00'}), t)
+        self.assertRaises(jo.ValidationError, f, {'x': 1})
+
     def test_regex_field(self):
         f = jo.RegexField('x', r'^[0-9]+$', flags=re.I)
         self.assertEqual(f({'x': '123'}), '123')

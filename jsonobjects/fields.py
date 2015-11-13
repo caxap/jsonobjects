@@ -25,7 +25,7 @@ except ImportError:
 
 __all__ = ['Field', 'BooleanField', 'StringField', 'IntegerField',
            'FloatField', 'DecimalField', 'DateField', 'DateTimeField',
-           'RegexField', 'ListField', 'DictField']
+           'TimeField', 'RegexField', 'ListField', 'DictField']
 
 
 def get_error_messages(instance):
@@ -389,6 +389,20 @@ class DateTimeField(BaseDateField):
             self.fail('date')
 
         return super(DateTimeField, self).convert_to_type(value)
+
+
+class TimeField(BaseDateField):
+    default_error_messages = {
+        'invalid': 'A valid time is required. Allowed formats: {formats}.',
+    }
+
+    def convert_to_type(self, value):
+        if isinstance(value, datetime.time):
+            return value
+        return super(TimeField, self).convert_to_type(value)
+
+    def parse_date(self, value, format):
+        return super(TimeField, self).parse_date(value, format).time()
 
 
 class RegexField(StringField):
